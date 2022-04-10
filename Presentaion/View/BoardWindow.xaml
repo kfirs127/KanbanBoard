@@ -1,0 +1,230 @@
+﻿<Window x:Class="Presentaion.View.BoardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Presentaion.View"
+        mc:Ignorable="d"
+        Title="BoardWindow" FontFamily="Kristen ITC" Background="#FFC6CAD4"
+        Closing="Window_Closing" MinHeight="700" MinWidth="1000">
+    <Grid Margin="10">
+        <StackPanel Orientation="Vertical">
+
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+                <Button Content="LogOut" x:Name="LogOutButton" Click="LogOut_Click" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" Foreground="#FFCE0D0D"/>
+                <Label Content="My Kanban Board" HorizontalAlignment="Center" VerticalAlignment="Center" Height="40" FontWeight="Bold" FontSize="24" Grid.Column="1" Grid.Row="0"/>
+            </Grid>
+            <Label Content="{Binding Path=LoggedInUserModel.Email, Mode=OneWay}" HorizontalAlignment="Center" VerticalContentAlignment="Top" VerticalAlignment="Top" FontSize="14"/>
+            <Grid Height="45">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="265"/>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="65"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBox Name="SearchTask" Text="{Binding Path=SearchText, Mode=OneWayToSource}" Width="250" Margin="4.6,7,0,8" Grid.Column="0" HorizontalAlignment="Left" VerticalContentAlignment="Center"/>
+                <Button Content="Search"  HorizontalAlignment="Left" VerticalAlignment="Center" Click="searchClick" FontSize="12" Grid.Column="1" Margin="0,8" Height="30" Width="64"></Button>
+                <Button Content="Sort"  Name="Sort_Button" HorizontalAlignment="Left" Click="SortTasksClick" FontSize="12" Margin="5,5,0,5" Height="30" Width="50" Grid.Column="2" ToolTip="sort by due date"></Button>
+                <StackPanel Orientation="Horizontal" Grid.Column="3" HorizontalAlignment="Right" Height="35">
+                    <Label Content="Creator:" HorizontalAlignment="Left" Margin="3" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+                    <Label Content="{Binding Path=Board.Creator, Mode=OneWay}" Margin="3" HorizontalAlignment="Center" FontSize="14"></Label>
+                </StackPanel>
+            </Grid>
+            <StackPanel Orientation="Vertical">
+                    <Label Content="Add Column:" FontSize="14" FontWeight="Bold" Margin="5" ToolTip="only the creator of the board can add a new column"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Grid.Column="0">
+                            <Label Content="Name" FontSize="12" FontWeight="Bold" Margin="3" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+                            <TextBox Name="NameTextBox" Margin="3" FontSize="12" HorizontalAlignment="Left" HorizontalContentAlignment="Left" Height="30" TextWrapping="Wrap" Text="{Binding Path=NewColumnName, Mode=TwoWay}" VerticalAlignment="Center" VerticalContentAlignment="Center" Width="200"/>
+                            <Label Content="Column Ordinal" HorizontalAlignment="Right" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="14" FontWeight="Bold"></Label>
+                            <TextBox Name="ColumnOrdinalTextBox" Margin="3" FontSize="12" HorizontalAlignment="Left" HorizontalContentAlignment="Left" Height="30" Text="{Binding Path = NewColumnOrdinal, Mode=TwoWay}" VerticalAlignment="Center" VerticalContentAlignment="Center" Width="50" Grid.Column="1" Grid.Row="1"/>
+                            <Button Content="Add" HorizontalAlignment="Right" Click="AddColumnClick" Margin="3">
+                                <Button.Style>
+                                    <Style TargetType="{x:Type Button}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text.Length, ElementName=NameTextBox, UpdateSourceTrigger=PropertyChanged}" Value="0">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Text.Length, ElementName=ColumnOrdinalTextBox, UpdateSourceTrigger=PropertyChanged}" Value="0">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Path=IsColumnEditableAdd, Mode=OneWay}" Value="false">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                        <Button Content="Add Task" x:Name="Add_Task" Click="AddTaskClick" Margin="3" FontSize="14" Grid.Column="1"></Button>
+                    </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <!--Columns-->
+                    <ListBox Name="Columns" ItemsSource="{Binding Path=Board.Columns, Mode=TwoWay}"  Width="1000" HorizontalContentAlignment="Center"  VerticalContentAlignment="Top" SelectedItem="{Binding Path=SelectedColumn, Mode=TwoWay}" Background="#FFC6CAD4" BorderBrush="#FFC6CAD4">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel IsItemsHost="True" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Vertical">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!--edit column properties-->
+                                        <Button Content="&#x003C;" x:Name="Move_Left" Click="MoveLeftCLick" Margin="3,3,3,3" FontSize="14" Grid.Column="0" ToolTip="move levf">
+                                            <Button.Style>
+                                                <Style TargetType="{x:Type Button}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsColumnEditableLeft, Mode=OneWay}" Value="False">
+                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Content="Edit" Name="Edit_Column_Button" Click="EditColumnClick" Margin="3,3,3,3" FontSize="14" Grid.Column="1">
+                                            <Button.Style>
+                                                <Style TargetType="{x:Type Button}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsColumnEditable, Mode=OneWay}" Value="False">
+                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Content="Delete" Name="Delete_Column_Button" Click="DeleteColumnClick" FontSize="14" Margin="3,3,3,3" Grid.Column="2">
+                                            <Button.Style>
+                                                <Style TargetType="{x:Type Button}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsColumnEditable, Mode=OneWay}" Value="False">
+                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.IsColumnDeleteble , Mode=OneWay}" Value="False">
+                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Content=">" x:Name="Move_Right" Click="MoveRichtCLick" Margin="3,3,3,3" FontSize="14" Grid.Column="3" ToolTip="move right">
+                                            <Button.Style>
+                                                <Style TargetType="{x:Type Button}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsColumnEditableRight, Mode=OneWay}" Value="False">
+                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+
+                                    <Label Content="{Binding Path=Name, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Grid.Column="0" ></Label>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label Content="Limit:" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold" Grid.Column="0" Grid.Row="1"></Label>
+                                        <Label Content="{Binding Path=Limit, Mode=TwoWay}" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" FontSize="14" Grid.Column="1" ></Label>
+                                    </StackPanel>
+
+                                    <!--Tasks-->
+                                    <ListBox Name="Tasks" Height="310" ItemsSource="{Binding Path=TasksBySearch, Mode=TwoWay}" SelectedItem="{Binding Path=SelectedTask, Mode=TwoWay}" Background="#FFF4F5F7" >
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <VirtualizingStackPanel IsItemsHost="True" Orientation="Vertical" VerticalAlignment="Stretch"/>
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border
+                                                BorderThickness="2"
+                                                BorderBrush="{Binding Path=BorderColor, Mode=OneWay}"
+                                                Background="{Binding Path=BackgroundColor, Mode=OneWay}">
+                                                    <StackPanel Orientation="Vertical" MouseDown="OpenTask">
+                                                        <!--task properties-->
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition/>
+                                                                <ColumnDefinition/>
+                                                                <ColumnDefinition/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Button Content="Edit" Name="Edit_Task_Button" HorizontalAlignment="Center" Click="EditTaskClick" FontSize="12" Margin="5,5,5,5" Grid.Column="0">
+                                                                <Button.Style>
+                                                                    <Style TargetType="{x:Type Button}">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Path=IsAdvanceble, Mode=TwoWay}" Value="False">
+                                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Path=IsEditable, Mode=TwoWay}" Value="False">
+                                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
+                                                            </Button>
+                                                            <Button Content="Delete" Name="Delete_Task_Button" HorizontalAlignment="Center" Click="DeleteTaskClick" FontSize="12" Margin="5,5,5,5" Grid.Column="1">
+                                                                <Button.Style>
+                                                                    <Style TargetType="{x:Type Button}">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Path=IsEditable, Mode=TwoWay}" Value="False">
+                                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
+                                                            </Button>
+                                                            <Button Content=">" Name="Advance_Task_Button" HorizontalAlignment="Center" Click="AdvanceTaskClick" FontSize="12" Margin="5,5,5,5" Grid.Column="2" ToolTip="advance">
+                                                                <Button.Style>
+                                                                    <Style TargetType="{x:Type Button}">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Path=IsAdvanceble, Mode=TwoWay}" Value="False">
+                                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Path=IsEditable, Mode=TwoWay}" Value="False">
+                                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
+                                                            </Button>
+                                                        </Grid>
+                                                        <Label Content="{Binding Path=Title, Mode=OneWay}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                                                        <Label Content="{Binding Path=DueDate, Mode=OneWay}" FontSize="14" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
